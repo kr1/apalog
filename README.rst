@@ -19,7 +19,7 @@ Installation
 ~~~~~~~~~~~~
 
 #. clone the repo
-#. run `pip install --editable --user .` from the project root (use --editable if you intend to make changes)
+#. run `pip install --user --editable .` from the project root (use --editable if you intend to make changes)
 
 Usage
 ~~~~~
