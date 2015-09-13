@@ -4,6 +4,9 @@
 import re
 import datetime
 from collections import OrderedDict, Counter
+from apalog.patterns import (HTTP_STATUS_TEMPLATE,
+                             HTTP_STATUS_GROUP,
+                             DATE_PATTERN)
 
 
 class LogFile():
@@ -58,7 +61,7 @@ class LogFile():
                     ]
         if self.rules['split_days']:
             days = OrderedDict()
-            date_pattern = re.compile("[0-9]{2}/[a-zA-Z]{3}/[0-9]{4}")
+            date_pattern = re.compile(DATE_PATTERN)
             for line in filtered:
                 date = re.search(date_pattern, line)
                 if not date:
@@ -101,7 +104,7 @@ class LogFile():
         return self
 
     def http_status(self, status):
-        self.rules['positive'].append('HTTP[^ ]+ {}'.format(status))
+        self.rules['positive'].append(re.compile(HTTP_STATUS_TEMPLATE.format(status)))
         return self
 
     def content_gt(self, bytes):
@@ -123,7 +126,7 @@ class LogFile():
         to group and count occurrences.
         returns a dictionary of {substring:count} or
         an Ordered dict {date:{substring:count}} depending on the
-        value of split days split_days'''
+        value of split_days'''
 
         pat = re.compile(pat)
         self.rules['show_only'] = pat
@@ -137,6 +140,9 @@ class LogFile():
             return new_dict
         else:
             return Counter(applied)
+
+    def count_status_codes(self):
+        return self.classify_and_count(re.compile(HTTP_STATUS_GROUP))
 
     def count_variants(self, pat):
         counted = self.classify_and_count(pat)

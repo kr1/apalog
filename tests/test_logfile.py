@@ -42,6 +42,11 @@ def test_classify_and_count(sample_log):
     assert sample_log.classify_and_count('HTTP/1.[10]" (...)') == expected
 
 
+def test_count_status_codes(sample_log):
+    expected = {'200': 59, '404': 27, '403': 2, '301': 2, '405': 1}
+    assert sample_log.count_status_codes() == expected
+
+
 def test_split_days(sample_log):
     expected = OrderedDict([('2015-09-01', 3), ('2015-09-02', 24)])
     assert sample_log.split_days().http_status(404).count() == expected
