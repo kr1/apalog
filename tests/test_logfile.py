@@ -9,7 +9,7 @@ Tests for `logfile` module.
 """
 
 import pytest
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 
 from apalog import logfile
 
@@ -37,11 +37,18 @@ def test_http_status(sample_log):
     assert sample_log.http_status(200).count() == 59
 
 
-def test_status_frequency(sample_log):
+def test_classify_and_count(sample_log):
     expected = {'200': 59, '404': 27, '403': 2, '301': 2, '405': 1}
     assert sample_log.classify_and_count('HTTP/1.[10]" (...)') == expected
 
 
-def test_splt_days(sample_log):
+def test_split_days(sample_log):
     expected = OrderedDict([('2015-09-01', 3), ('2015-09-02', 24)])
     assert sample_log.split_days().http_status(404).count() == expected
+
+
+def test_classify_and_count_with_split_days(sample_log):
+    expected = OrderedDict([
+        ('2015-09-01', Counter({'200': 35, '301': 2, '403': 2, '404': 3})),
+        ('2015-09-02', Counter({'200': 24, '404': 24, '405': 1}))])
+    assert sample_log.split_days().classify_and_count('HTTP/1.[10]" (...)') == expected
