@@ -23,14 +23,27 @@ def test_instance_creation(sample_log):
     assert sample_log.count() == 100
 
 
-def test_instance_creation_with_include():
+def test_instance_creation_with_include_1():
     logs = logfile.LogFile('tests/sample.log', include_pattern='baidu')
     assert logs.count() == 15
+
+
+def test_instance_creation_with_include_2():
+    logs = logfile.LogFile('tests/sample.log', include_pattern='sound')
+    assert logs.count() == 5
 
 
 def test_instance_creation_with_exclude():
     logs = logfile.LogFile('tests/sample.log', exclude_pattern='baidu')
     assert logs.count() == 85
+
+
+def test_OR(sample_log):
+    assert sample_log.posAND(False).pos('baidu').pos('sound').count() == 20
+
+
+def test_neg(sample_log):
+    assert sample_log.neg('sound').count() == 95
 
 
 def test_http_status(sample_log):
