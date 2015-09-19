@@ -70,3 +70,19 @@ def test_classify_and_count_with_split_days(sample_log):
         ('2015-09-01', Counter({'200': 35, '301': 2, '403': 2, '404': 3})),
         ('2015-09-02', Counter({'200': 24, '404': 24, '405': 1}))])
     assert sample_log.split_days().classify_and_count('HTTP/1.[10]" (...)') == expected
+
+
+def test_content_size_gt(sample_log):
+    expected = OrderedDict([('2015-09-01', 32), ('2015-09-02', 15)])
+    assert sample_log.split_days().content_gt(666).count() == expected
+
+
+def test_content_size_lt(sample_log):
+    expected = OrderedDict([('2015-09-01', 10), ('2015-09-02', 34)])
+    assert sample_log.split_days().content_lt(666).count() == expected
+
+
+def test_content_size_lt_and_gt(sample_log):
+    expected = OrderedDict([('2015-09-01', 15), ('2015-09-02', 37)])
+    assert sample_log.split_days().content_lt(999).content_gt(333).count() == expected
+    expected = 52

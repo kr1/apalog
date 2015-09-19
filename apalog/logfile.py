@@ -6,6 +6,7 @@ import datetime
 from collections import OrderedDict, Counter
 from apalog.patterns import (HTTP_STATUS_TEMPLATE,
                              HTTP_STATUS_GROUP,
+                             RESPONSE_SIZE,
                              DATE_PATTERN)
 
 
@@ -49,16 +50,23 @@ class LogFile():
         self.reset()
         return applied
 
+    def __validate_line(self, line):
+        return (((self.rules['positive_AND'] and
+                 len([rule for rule in self.rules['positive']
+                      if re.search(rule, line)]) == len(self.rules['positive']))
+                 or
+                 (not self.rules['positive_AND'] and
+                 len([rule for rule in self.rules['positive'] if re.search(rule, line)]) > 0))
+                and len([rule for rule in self.rules['negative'] if re.search(rule, line)]) == 0
+                and (self.rules.get('content_gt') is None
+                    or (re.search(RESPONSE_SIZE, line)
+                        and int(re.search(RESPONSE_SIZE, line).groups()[0]) > self.rules['content_gt']))
+                and (self.rules.get('content_lt') is None
+                    or (re.search(RESPONSE_SIZE, line)
+                        and int(re.search(RESPONSE_SIZE, line).groups()[0]) < self.rules['content_lt'])))
+
     def __apply(self):
-        filtered = [line for line in self.lines if
-                    ((self.rules['positive_AND'] and
-                     len([rule for rule in self.rules['positive']
-                          if re.search(rule, line)]) == len(self.rules['positive']))
-                     or
-                     (not self.rules['positive_AND'] and
-                     len([rule for rule in self.rules['positive'] if re.search(rule, line)]) > 0))
-                    and len([rule for rule in self.rules['negative'] if re.search(rule, line)]) == 0
-                    ]
+        filtered = [line for line in self.lines if self.__validate_line(line)]
         if self.rules['split_days']:
             days = OrderedDict()
             date_pattern = re.compile(DATE_PATTERN)
@@ -82,8 +90,6 @@ class LogFile():
         else:
             if self.rules['show_only']:
                 filtered = self.__apply_show_only(self.rules['show_only'], filtered)
-
-        # TODO: content_gt .append('HTTP[^ ]+ [0-9]{3}'
         return filtered
 
     def __apply_show_only(self, pat, lines):
@@ -107,9 +113,12 @@ class LogFile():
         self.rules['positive'].append(re.compile(HTTP_STATUS_TEMPLATE.format(status)))
         return self
 
-    def content_gt(self, bytes):
-        raise RuntimeError("not implemented")
-        self.rules['content_gt'] = bytes
+    def content_gt(self, num_bytes):
+        self.rules['content_gt'] = num_bytes
+        return self
+
+    def content_lt(self, num_bytes):
+        self.rules['content_lt'] = num_bytes
         return self
 
     def split_days(self, val=True):
