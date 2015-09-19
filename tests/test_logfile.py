@@ -11,7 +11,7 @@ Tests for `logfile` module.
 import pytest
 from collections import OrderedDict, Counter
 
-from apalog import logfile
+from apalog import logfile, patterns
 
 
 @pytest.fixture
@@ -86,3 +86,9 @@ def test_content_size_lt_and_gt(sample_log):
     expected = OrderedDict([('2015-09-01', 15), ('2015-09-02', 37)])
     assert sample_log.split_days().content_lt(999).content_gt(333).count() == expected
     expected = 52
+
+
+def test_classify_and_count_IP_addresses(sample_log):
+    expected = [('151.27.127.120', 36), ('206.99.94.219', 16), ('177.3.165.141', 5),
+                ('199.58.86.209', 4), ('104.148.44.116', 2)]
+    assert sample_log.classify_and_count(patterns.IP_V4_ADDRESS).most_common(5) == expected
