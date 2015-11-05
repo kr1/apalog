@@ -142,11 +142,9 @@ class LogFile():
         applied = self.__apply()
         self.reset()
         if type(applied) == OrderedDict:
-            new_dict = OrderedDict()
-            for date, entry in sorted(applied.iteritems()):
-                counted = Counter(entry)
-                new_dict[date] = counted
-            return new_dict
+            for date in applied.iterkeys():
+                applied[date] = Counter(applied[date])
+            return applied
         else:
             return Counter(applied)
 
@@ -158,8 +156,6 @@ class LogFile():
         if isinstance(counted, Counter):
             return len(counted)
         else:
-            new_dict = OrderedDict()
-            for date, entry in sorted(counted.iteritems()):
-                length = len(entry)
-                new_dict[date] = length
-            return new_dict
+            for date in counted.iterkeys():
+                counted[date] = len(counted[date])
+            return counted
