@@ -37,16 +37,16 @@ class LogFile():
     def all(self):
         res = self.__apply()
         self.reset()
-        return res
+        return list(res)
 
     def count(self):
         applied = self.__apply()
         if type(applied) == OrderedDict:
-            applied = OrderedDict(
-                sorted([(key, len(value))
-                        for key, value in applied.items()]))
+            for key in applied.iterkeys():
+                applied[key] = len(applied[key])
         else:
-            applied = len(applied)
+            applied = len(list(applied))
+
         self.reset()
         return applied
 
@@ -66,7 +66,7 @@ class LogFile():
                         and int(re.search(RESPONSE_SIZE, line).groups()[0]) < self.rules['content_lt'])))
 
     def __apply(self):
-        filtered = [line for line in self.lines if self.__validate_line(line)]
+        filtered = (line for line in self.lines if self.__validate_line(line))
         if self.rules['split_days']:
             days = OrderedDict()
             date_pattern = re.compile(DATE_PATTERN)
@@ -93,7 +93,7 @@ class LogFile():
         return filtered
 
     def __apply_show_only(self, pat, lines):
-        lines = [re.search(pat, line) for line in lines]
+        lines = (re.search(pat, line) for line in lines)
         return [(match.groups()[0] if match.groups() else match.group())
                 for match in lines if match]
 
