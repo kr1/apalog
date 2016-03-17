@@ -35,9 +35,9 @@ class LogFile():
         return str(self.rules)
 
     def all(self):
-        res = self.__apply()
+        res = list(self.__apply())
         self.reset()
-        return list(res)
+        return res
 
     def count(self):
         applied = self.__apply()
